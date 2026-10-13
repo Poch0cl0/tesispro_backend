@@ -3,6 +3,9 @@ import { RolUsuario } from '../common/enums/database.enums.js';
 
 @Entity('usuario_interno')
 export class UsuarioInterno {
+  @Column({ name: 'password_hash', type: 'text', nullable: true, select: false })
+  passwordHash: string | null;
+
   @PrimaryGeneratedColumn({ name: 'id_usuario' })
   idUsuario: number;
 

@@ -6,6 +6,10 @@ import { Lead } from './lead.entity.js';
 
 @Entity('pago')
 export class Pago {
+  @Column({ name: 'id_cuota', type: 'integer', nullable: true }) idCuota: number | null;
+  @Column({ name: 'id_usuario_registro', type: 'integer', nullable: true }) idUsuarioRegistro: number | null;
+  @Column({ name: 'clave_idempotencia', type: 'uuid', nullable: true, unique: true }) claveIdempotencia: string | null;
+
   @PrimaryGeneratedColumn({ name: 'id_pago' })
   idPago: number;
 

@@ -82,7 +82,11 @@ import { Cliente } from './cliente.entity.js';
 import { KpiDefinicion } from './kpi-definicion.entity.js';
 import { KpiMedicion } from './kpi-medicion.entity.js';
 
+export { CronogramaPago, CuotaPago, SesionAdmin } from './admin.entity.js';
+import { CronogramaPago, CuotaPago, SesionAdmin } from './admin.entity.js';
+
 export const entities = [
+  CronogramaPago, CuotaPago, SesionAdmin,
   Universidad,
   GradoAcademico,
   Facultad,

@@ -11,9 +11,11 @@ import { ProyectosModule } from './modules/proyectos/proyectos.module.js';
 import { ConversacionesModule } from './modules/conversaciones/conversaciones.module.js';
 import { NegociacionModule } from './modules/negociacion/negociacion.module.js';
 import { KpisModule } from './modules/kpis/kpis.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 
 @Module({
   imports: [
+    AdminModule,
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     AcademicoModule,
