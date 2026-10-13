@@ -21,9 +21,9 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "typeorm": "node node_modules/typeorm/cli.js",
-    "migration:run": "pnpm build && pnpm typeorm migration:run -d dist/src/database/typeorm.config.js",
-    "migration:revert": "pnpm build && pnpm typeorm migration:revert -d dist/src/database/typeorm.config.js",
-    "migration:show": "pnpm build && pnpm typeorm migration:show -d dist/src/database/typeorm.config.js"
+    "migration:run": "pnpm build && pnpm typeorm migration:run -d dist/database/typeorm.config.js",
+    "migration:revert": "pnpm build && pnpm typeorm migration:revert -d dist/database/typeorm.config.js",
+    "migration:show": "pnpm build && pnpm typeorm migration:show -d dist/database/typeorm.config.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
