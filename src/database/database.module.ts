@@ -20,7 +20,7 @@ import { entities } from '../entities/index.js';
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: false,
         migrationsRun: config.get<string>('DB_RUN_MIGRATIONS', 'false') === 'true',
-        migrations: ['dist/src/migrations/*.js'],
+        migrations: ['dist/migrations/*.js'],
         logging: config.get<string>('DB_LOGGING', 'false') === 'true',
       }),
     }),

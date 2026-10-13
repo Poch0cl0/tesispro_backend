@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Lead } from './lead.entity.js';
 
@@ -20,5 +21,5 @@ export class PerfilLaboral {
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 }

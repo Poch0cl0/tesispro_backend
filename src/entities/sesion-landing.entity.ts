@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CanalOrigenSesion } from '../common/enums/database.enums.js';
 import { Publicacion } from './publicacion.entity.js';
@@ -55,21 +56,21 @@ export class SesionLanding {
 
   @ManyToOne(() => Publicacion, { nullable: true })
   @JoinColumn({ name: 'id_publicacion' })
-  publicacion: Publicacion | null;
+  publicacion: Relation<Publicacion> | null;
 
   @ManyToOne(() => Campana, { nullable: true })
   @JoinColumn({ name: 'id_campana' })
-  campana: Campana | null;
+  campana: Relation<Campana> | null;
 
   @ManyToOne(() => EnlaceReferido, { nullable: true })
   @JoinColumn({ name: 'id_referido' })
-  referido: EnlaceReferido | null;
+  referido: Relation<EnlaceReferido> | null;
 
   @ManyToOne(() => ConvenioInstitucional, { nullable: true })
   @JoinColumn({ name: 'id_convenio' })
-  convenio: ConvenioInstitucional | null;
+  convenio: Relation<ConvenioInstitucional> | null;
 
   @ManyToOne(() => RecursoGratuito, { nullable: true })
   @JoinColumn({ name: 'id_recurso' })
-  recurso: RecursoGratuito | null;
+  recurso: Relation<RecursoGratuito> | null;
 }

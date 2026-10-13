@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TipoConceptoVisual } from '../common/enums/database.enums.js';
 import { AgenteIa } from './agente-ia.entity.js';
@@ -34,9 +35,9 @@ export class ConceptoVisual {
 
   @ManyToOne(() => AgenteIa, { nullable: true })
   @JoinColumn({ name: 'id_agente' })
-  agente: AgenteIa | null;
+  agente: Relation<AgenteIa> | null;
 
   @ManyToOne(() => UsuarioInterno, { nullable: true })
   @JoinColumn({ name: 'aprobado_por' })
-  aprobador: UsuarioInterno | null;
+  aprobador: Relation<UsuarioInterno> | null;
 }

@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Lead } from './lead.entity.js';
 import { Propuesta } from './propuesta.entity.js';
@@ -21,9 +22,9 @@ export class Cliente {
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 
   @ManyToOne(() => Propuesta, { nullable: true })
   @JoinColumn({ name: 'id_propuesta_origen' })
-  propuestaOrigen: Propuesta | null;
+  propuestaOrigen: Relation<Propuesta> | null;
 }

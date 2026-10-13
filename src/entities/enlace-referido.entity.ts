@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Lead } from './lead.entity.js';
 
@@ -20,5 +21,5 @@ export class EnlaceReferido {
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead_referente' })
-  leadReferente: Lead;
+  leadReferente: Relation<Lead>;
 }

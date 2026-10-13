@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Propuesta } from './propuesta.entity.js';
 import { Servicio } from './servicio.entity.js';
@@ -34,13 +35,13 @@ export class PropuestaDetalle {
 
   @ManyToOne(() => Propuesta, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_propuesta' })
-  propuesta: Propuesta;
+  propuesta: Relation<Propuesta>;
 
   @ManyToOne(() => Servicio)
   @JoinColumn({ name: 'id_servicio' })
-  servicio: Servicio;
+  servicio: Relation<Servicio>;
 
   @ManyToOne(() => EtapaTesis, { nullable: true })
   @JoinColumn({ name: 'id_etapa' })
-  etapa: EtapaTesis | null;
+  etapa: Relation<EtapaTesis> | null;
 }

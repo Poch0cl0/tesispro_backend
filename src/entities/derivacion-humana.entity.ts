@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { EstadoDerivacion } from '../common/enums/database.enums.js';
 import { Conversacion } from './conversacion.entity.js';
@@ -35,13 +36,13 @@ export class DerivacionHumana {
 
   @ManyToOne(() => Conversacion)
   @JoinColumn({ name: 'id_conversacion' })
-  conversacion: Conversacion;
+  conversacion: Relation<Conversacion>;
 
   @ManyToOne(() => Lead, { nullable: true })
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead | null;
+  lead: Relation<Lead> | null;
 
   @ManyToOne(() => UsuarioInterno, { nullable: true })
   @JoinColumn({ name: 'id_usuario_asignado' })
-  usuarioAsignado: UsuarioInterno | null;
+  usuarioAsignado: Relation<UsuarioInterno> | null;
 }

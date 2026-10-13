@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Lead } from './lead.entity.js';
 import { EstadoLead } from './estado-lead.entity.js';
@@ -29,17 +30,17 @@ export class LeadEstadoHistorial {
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 
   @ManyToOne(() => EstadoLead)
   @JoinColumn({ name: 'id_estado' })
-  estado: EstadoLead;
+  estado: Relation<EstadoLead>;
 
   @ManyToOne(() => UsuarioInterno, { nullable: true })
   @JoinColumn({ name: 'id_usuario' })
-  usuario: UsuarioInterno | null;
+  usuario: Relation<UsuarioInterno> | null;
 
   @ManyToOne(() => AgenteIa, { nullable: true })
   @JoinColumn({ name: 'id_agente' })
-  agente: AgenteIa | null;
+  agente: Relation<AgenteIa> | null;
 }

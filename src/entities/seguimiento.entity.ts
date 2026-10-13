@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CanalContacto, EstadoSeguimiento } from '../common/enums/database.enums.js';
 import { Propuesta } from './propuesta.entity.js';
@@ -44,13 +45,13 @@ export class Seguimiento {
 
   @ManyToOne(() => Propuesta)
   @JoinColumn({ name: 'id_propuesta' })
-  propuesta: Propuesta;
+  propuesta: Relation<Propuesta>;
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 
   @ManyToOne(() => AgenteIa, { nullable: true })
   @JoinColumn({ name: 'id_agente' })
-  agente: AgenteIa | null;
+  agente: Relation<AgenteIa> | null;
 }

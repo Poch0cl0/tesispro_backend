@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Semaforo } from '../common/enums/database.enums.js';
 import { KpiDefinicion } from './kpi-definicion.entity.js';
@@ -45,17 +46,17 @@ export class KpiMedicion {
 
   @ManyToOne(() => KpiDefinicion)
   @JoinColumn({ name: 'id_kpi' })
-  kpi: KpiDefinicion;
+  kpi: Relation<KpiDefinicion>;
 
   @ManyToOne(() => Universidad, { nullable: true })
   @JoinColumn({ name: 'id_universidad' })
-  universidad: Universidad | null;
+  universidad: Relation<Universidad> | null;
 
   @ManyToOne(() => Campana, { nullable: true })
   @JoinColumn({ name: 'id_campana' })
-  campana: Campana | null;
+  campana: Relation<Campana> | null;
 
   @ManyToOne(() => AgenteIa, { nullable: true })
   @JoinColumn({ name: 'id_agente' })
-  agente: AgenteIa | null;
+  agente: Relation<AgenteIa> | null;
 }

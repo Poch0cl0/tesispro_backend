@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { EstadoPublicacion, TipoContenido } from '../common/enums/database.enums.js';
 import { CuentaRedSocial } from './cuenta-red-social.entity.js';
@@ -72,17 +73,17 @@ export class Publicacion {
 
   @ManyToOne(() => CuentaRedSocial, (cuenta) => cuenta.publicaciones)
   @JoinColumn({ name: 'id_cuenta' })
-  cuenta: CuentaRedSocial;
+  cuenta: Relation<CuentaRedSocial>;
 
   @ManyToOne(() => Campana, { nullable: true })
   @JoinColumn({ name: 'id_campana' })
-  campana: Campana | null;
+  campana: Relation<Campana> | null;
 
   @ManyToOne(() => ConceptoVisual, { nullable: true })
   @JoinColumn({ name: 'id_concepto' })
-  concepto: ConceptoVisual | null;
+  concepto: Relation<ConceptoVisual> | null;
 
   @ManyToOne(() => AgenteIa, { nullable: true })
   @JoinColumn({ name: 'id_agente' })
-  agente: AgenteIa | null;
+  agente: Relation<AgenteIa> | null;
 }

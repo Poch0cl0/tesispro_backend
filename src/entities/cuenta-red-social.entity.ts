@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Plataforma } from './plataforma.entity.js';
 import { Publicacion } from './publicacion.entity.js';
@@ -21,7 +22,7 @@ export class CuentaRedSocial {
 
   @ManyToOne(() => Plataforma, (plataforma) => plataforma.cuentas)
   @JoinColumn({ name: 'id_plataforma' })
-  plataforma: Plataforma;
+  plataforma: Relation<Plataforma>;
 
   @OneToMany(() => Publicacion, (publicacion) => publicacion.cuenta)
   publicaciones: Publicacion[];

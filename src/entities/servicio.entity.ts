@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ModeloCobro, ModalidadServicio } from '../common/enums/database.enums.js';
 import { GradoAcademico } from './grado-academico.entity.js';
@@ -45,5 +46,5 @@ export class Servicio {
 
   @ManyToOne(() => GradoAcademico, { nullable: true })
   @JoinColumn({ name: 'id_grado' })
-  grado: GradoAcademico | null;
+  grado: Relation<GradoAcademico> | null;
 }

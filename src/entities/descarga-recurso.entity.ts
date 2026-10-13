@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CanalContacto } from '../common/enums/database.enums.js';
 import { RecursoGratuito } from './recurso-gratuito.entity.js';
@@ -29,13 +30,13 @@ export class DescargaRecurso {
 
   @ManyToOne(() => RecursoGratuito)
   @JoinColumn({ name: 'id_recurso' })
-  recurso: RecursoGratuito;
+  recurso: Relation<RecursoGratuito>;
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 
   @ManyToOne(() => SesionLanding, { nullable: true })
   @JoinColumn({ name: 'id_sesion' })
-  sesion: SesionLanding | null;
+  sesion: Relation<SesionLanding> | null;
 }

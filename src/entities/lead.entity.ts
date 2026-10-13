@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { CanalContacto, ModalidadServicio } from '../common/enums/database.enums.js';
 import { SesionLanding } from './sesion-landing.entity.js';
@@ -59,13 +60,13 @@ export class Lead {
 
   @ManyToOne(() => SesionLanding, { nullable: true })
   @JoinColumn({ name: 'id_sesion_origen' })
-  sesionOrigen: SesionLanding | null;
+  sesionOrigen: Relation<SesionLanding> | null;
 
   @ManyToOne(() => EstadoLead)
   @JoinColumn({ name: 'id_estado' })
-  estado: EstadoLead;
+  estado: Relation<EstadoLead>;
 
   @ManyToOne(() => UsuarioInterno, { nullable: true })
   @JoinColumn({ name: 'id_responsable' })
-  responsable: UsuarioInterno | null;
+  responsable: Relation<UsuarioInterno> | null;
 }

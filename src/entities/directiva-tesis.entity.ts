@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Facultad } from './facultad.entity.js';
 import { GradoAcademico } from './grado-academico.entity.js';
@@ -48,9 +49,9 @@ export class DirectivaTesis {
 
   @ManyToOne(() => Facultad)
   @JoinColumn({ name: 'id_facultad' })
-  facultad: Facultad;
+  facultad: Relation<Facultad>;
 
   @ManyToOne(() => GradoAcademico)
   @JoinColumn({ name: 'id_grado' })
-  grado: GradoAcademico;
+  grado: Relation<GradoAcademico>;
 }

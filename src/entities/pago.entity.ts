@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { MetodoPago, EstadoPago } from '../common/enums/database.enums.js';
 import { Contrato } from './contrato.entity.js';
@@ -46,9 +47,9 @@ export class Pago {
 
   @ManyToOne(() => Contrato)
   @JoinColumn({ name: 'id_contrato' })
-  contrato: Contrato;
+  contrato: Relation<Contrato>;
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 }

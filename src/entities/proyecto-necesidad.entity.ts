@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { ProyectoTesis } from './proyecto-tesis.entity.js';
 import { NecesidadAcademica } from './necesidad-academica.entity.js';
@@ -15,9 +16,9 @@ export class ProyectoNecesidad {
 
   @ManyToOne(() => ProyectoTesis, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_proyecto' })
-  proyecto: ProyectoTesis;
+  proyecto: Relation<ProyectoTesis>;
 
   @ManyToOne(() => NecesidadAcademica)
   @JoinColumn({ name: 'id_necesidad' })
-  necesidad: NecesidadAcademica;
+  necesidad: Relation<NecesidadAcademica>;
 }

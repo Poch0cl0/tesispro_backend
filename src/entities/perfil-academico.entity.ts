@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { CondicionAcademica } from '../common/enums/database.enums.js';
 import { Lead } from './lead.entity.js';
@@ -40,21 +41,21 @@ export class PerfilAcademico {
 
   @ManyToOne(() => Lead)
   @JoinColumn({ name: 'id_lead' })
-  lead: Lead;
+  lead: Relation<Lead>;
 
   @ManyToOne(() => Universidad, { nullable: true })
   @JoinColumn({ name: 'id_universidad' })
-  universidad: Universidad | null;
+  universidad: Relation<Universidad> | null;
 
   @ManyToOne(() => Facultad, { nullable: true })
   @JoinColumn({ name: 'id_facultad' })
-  facultad: Facultad | null;
+  facultad: Relation<Facultad> | null;
 
   @ManyToOne(() => ProgramaAcademico, { nullable: true })
   @JoinColumn({ name: 'id_programa' })
-  programa: ProgramaAcademico | null;
+  programa: Relation<ProgramaAcademico> | null;
 
   @ManyToOne(() => GradoAcademico, { nullable: true })
   @JoinColumn({ name: 'id_grado' })
-  grado: GradoAcademico | null;
+  grado: Relation<GradoAcademico> | null;
 }

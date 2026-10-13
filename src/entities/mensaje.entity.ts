@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TipoRemitente } from '../common/enums/database.enums.js';
 import { Conversacion } from './conversacion.entity.js';
@@ -38,13 +39,13 @@ export class Mensaje {
 
   @ManyToOne(() => Conversacion, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_conversacion' })
-  conversacion: Conversacion;
+  conversacion: Relation<Conversacion>;
 
   @ManyToOne(() => AgenteIa, { nullable: true })
   @JoinColumn({ name: 'id_agente' })
-  agente: AgenteIa | null;
+  agente: Relation<AgenteIa> | null;
 
   @ManyToOne(() => UsuarioInterno, { nullable: true })
   @JoinColumn({ name: 'id_usuario' })
-  usuario: UsuarioInterno | null;
+  usuario: Relation<UsuarioInterno> | null;
 }
