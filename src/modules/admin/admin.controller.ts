@@ -16,6 +16,7 @@ import { AdminService } from './admin.service.js';
 import {
   AbonoDto,
   CronogramaDto,
+  KpiRangeDto,
   LeadDto,
   ListDto,
   PreviewDto,
@@ -43,6 +44,9 @@ export class AdminController {
   }
   @Get('resumen') resumen() {
     return this.service.resumen();
+  }
+  @Get('impulse-kpis') impulseKpis(@Query() dto: KpiRangeDto) {
+    return this.service.impulseKpis(dto);
   }
   @Get('leads') leads(@Query() dto: ListDto) {
     return this.service.leads(dto);

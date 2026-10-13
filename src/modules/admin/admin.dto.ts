@@ -120,3 +120,15 @@ export class ResolverPagoDto {
   @IsIn(['confirmado', 'rechazado']) estado: 'confirmado' | 'rechazado';
   @IsOptional() @IsISO8601({ strict: true }) fechaPago?: string;
 }
+
+export class KpiRangeDto {
+  @IsOptional()
+  @IsISO8601({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  desde?: string;
+
+  @IsOptional()
+  @IsISO8601({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  hasta?: string;
+}

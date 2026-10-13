@@ -8,6 +8,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import {
   AbonoDto,
   CronogramaDto,
+  KpiRangeDto,
   LeadDto,
   ListDto,
   PreviewDto,
@@ -19,6 +20,7 @@ import {
   MetodoPago,
   ModalidadServicio,
 } from '../../common/enums/database.enums.js';
+import { makeKpi, makeRatioKpi, positiveSatisfactionDefinition } from './impulse-kpi.js';
 
 type Row = Record<string, any>;
 const camel = (row: Row): Row =>
@@ -29,6 +31,19 @@ const camel = (row: Row): Row =>
     ]),
   );
 const map = (rows: Row[]) => rows.map(camel);
+const limaDate = (date = new Date()) =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Lima',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+const addDays = (isoDate: string, days: number) => {
+  const date = new Date(`${isoDate}T12:00:00-05:00`);
+  date.setDate(date.getDate() + days);
+  return limaDate(date);
+};
+const number = (value: unknown) => Number(value ?? 0);
 const cuotaSql = `SELECT c.id_cuota,c.id_cronograma,c.nro_cuota,c.monto, c.fecha_vencimiento::text AS fecha_vencimiento, cp.id_contrato, cp.moneda,
   ct.id_lead, l.nombres, l.apellidos, l.correo,
   COALESCE(a.abonado,0)::numeric(10,2)::text AS abonado,
@@ -541,6 +556,227 @@ export class AdminService {
       );
       return camel(row);
     });
+  }
+  private kpiRange(dto: KpiRangeDto) {
+    const hasta = dto.hasta || limaDate();
+    const desde = dto.desde || addDays(hasta, -29);
+    if (desde > hasta)
+      throw new BadRequestException('El rango de fechas es inválido.');
+    return { desde, hasta };
+  }
+  async impulseKpis(dto: KpiRangeDto) {
+    const range = this.kpiRange(dto);
+    const params = [range.desde, range.hasta];
+    const [
+      [publication],
+      [landing],
+      [leadStats],
+      [chat],
+      [payers],
+      [proposalStats],
+      [conversion],
+      platformRows,
+      leadDayRows,
+      universityRows,
+      cycleRows,
+      stageRows,
+      proposalStateRows,
+      followUpRows,
+    ] = await Promise.all([
+      this.db.query(
+        `SELECT COALESCE(sum(clics),0)::int AS clicks, COALESCE(sum(impresiones),0)::int AS impressions
+        FROM publicacion
+        WHERE estado='publicada'
+          AND fecha_publicacion >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND fecha_publicacion < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `SELECT count(*)::int AS visits,
+          count(*) FILTER(WHERE tuvo_interaccion)::int AS interactions,
+          count(*) FILTER(WHERE visito_formulario)::int AS form_visits,
+          count(*) FILTER(WHERE completo_formulario)::int AS completed_forms
+        FROM sesion_landing
+        WHERE fecha >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND fecha < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `SELECT count(*)::int AS leads,
+          count(*) FILTER(WHERE cumple_perfil_objetivo)::int AS target_leads
+        FROM lead
+        WHERE fecha_registro >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND fecha_registro < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `SELECT count(tiempo_respuesta_ms)::int AS response_count,
+          ROUND((avg(tiempo_respuesta_ms) / 1000.0)::numeric,2)::float AS avg_response_seconds,
+          count(*) FILTER(WHERE calificacion_positiva IS NOT NULL)::int AS ratings,
+          count(*) FILTER(WHERE calificacion_positiva=true)::int AS positive_ratings
+        FROM mensaje
+        WHERE remitente='agente_ia'
+          AND enviado_en >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND enviado_en < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `SELECT count(DISTINCT p.id_lead)::int AS payers
+        FROM pago p
+        WHERE p.estado='confirmado'
+          AND COALESCE(p.fecha_pago,p.created_at) >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND COALESCE(p.fecha_pago,p.created_at) < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `SELECT count(*) FILTER(WHERE estado <> 'borrador')::int AS sent,
+          count(*) FILTER(WHERE estado='aceptada')::int AS accepted
+        FROM propuesta
+        WHERE fecha_envio >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND fecha_envio < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `WITH first_payment AS (
+          SELECT ct.id_propuesta, min(COALESCE(p.fecha_pago,p.created_at)) AS paid_at
+          FROM pago p JOIN contrato ct ON ct.id_contrato=p.id_contrato
+          WHERE p.estado='confirmado'
+          GROUP BY ct.id_propuesta
+        )
+        SELECT count(*)::int AS converted,
+          ROUND(avg(EXTRACT(EPOCH FROM (fp.paid_at - pr.fecha_envio)) / 86400.0)::numeric,2)::float AS avg_days
+        FROM first_payment fp JOIN propuesta pr ON pr.id_propuesta=fp.id_propuesta
+        WHERE pr.fecha_envio IS NOT NULL
+          AND fp.paid_at >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND fp.paid_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')`,
+        params,
+      ),
+      this.db.query(
+        `SELECT pl.nombre, COALESCE(sum(pub.clics),0)::int AS clicks,
+          COALESCE(sum(pub.impresiones),0)::int AS impressions
+        FROM publicacion pub
+        JOIN cuenta_red_social c USING(id_cuenta)
+        JOIN plataforma pl USING(id_plataforma)
+        WHERE pub.estado='publicada'
+          AND pub.fecha_publicacion >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND pub.fecha_publicacion < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')
+        GROUP BY pl.id_plataforma, pl.nombre
+        ORDER BY pl.nombre`,
+        params,
+      ),
+      this.db.query(
+        `SELECT (fecha_registro AT TIME ZONE 'America/Lima')::date::text AS date,
+          count(*)::int AS total
+        FROM lead
+        WHERE fecha_registro >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND fecha_registro < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')
+        GROUP BY 1 ORDER BY 1`,
+        params,
+      ),
+      this.db.query(
+        `SELECT COALESCE(u.siglas,u.nombre,pa.universidad_otra,'Sin universidad') AS label,
+          count(*)::int AS total
+        FROM lead l
+        LEFT JOIN perfil_academico pa USING(id_lead)
+        LEFT JOIN universidad u ON u.id_universidad=pa.id_universidad
+        WHERE l.fecha_registro >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND l.fecha_registro < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')
+        GROUP BY 1 ORDER BY total DESC, label LIMIT 8`,
+        params,
+      ),
+      this.db.query(
+        `SELECT COALESCE(pa.ciclo::text,'Sin ciclo') AS label, count(*)::int AS total
+        FROM lead l LEFT JOIN perfil_academico pa USING(id_lead)
+        WHERE l.fecha_registro >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND l.fecha_registro < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')
+        GROUP BY 1 ORDER BY total DESC, label LIMIT 8`,
+        params,
+      ),
+      this.db.query(
+        `SELECT COALESCE(et.nombre,'Sin etapa') AS label, count(*)::int AS total
+        FROM lead l
+        LEFT JOIN proyecto_tesis pt USING(id_lead)
+        LEFT JOIN etapa_tesis et ON et.id_etapa=pt.id_etapa
+        WHERE l.fecha_registro >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND l.fecha_registro < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')
+        GROUP BY 1 ORDER BY total DESC, label LIMIT 8`,
+        params,
+      ),
+      this.db.query(
+        `SELECT estado AS label, count(*)::int AS total
+        FROM propuesta
+        WHERE created_at >= ($1::date::timestamp AT TIME ZONE 'America/Lima')
+          AND created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Lima')
+        GROUP BY estado ORDER BY total DESC, estado`,
+        params,
+      ),
+      this.db.query(
+        `SELECT pr.id_propuesta,
+          COALESCE(sd.servicio, 'Propuesta sin detalle') AS servicio,
+          pr.monto_total::text AS monto, pr.moneda,
+          pr.fecha_envio, l.id_lead, l.nombres, l.apellidos, l.correo,
+          GREATEST(0, floor(EXTRACT(EPOCH FROM (now() - pr.fecha_envio)) / 86400))::int AS dias_transcurridos,
+          s.fecha_programada, s.fecha_envio AS ultimo_envio, s.estado AS seguimiento_estado, s.resultado
+        FROM propuesta pr
+        JOIN lead l ON l.id_lead=pr.id_lead
+        LEFT JOIN LATERAL (
+          SELECT COALESCE(pd.descripcion, sv.nombre) AS servicio
+          FROM propuesta_detalle pd
+          LEFT JOIN servicio sv ON sv.id_servicio=pd.id_servicio
+          WHERE pd.id_propuesta=pr.id_propuesta
+          ORDER BY pd.id_detalle LIMIT 1
+        ) sd ON true
+        LEFT JOIN LATERAL (
+          SELECT * FROM seguimiento s
+          WHERE s.id_propuesta=pr.id_propuesta
+          ORDER BY COALESCE(s.fecha_envio,s.fecha_programada) DESC, s.id_seguimiento DESC
+          LIMIT 1
+        ) s ON true
+        WHERE pr.estado='enviada' AND pr.fecha_envio IS NOT NULL AND pr.fecha_respuesta IS NULL
+        ORDER BY pr.fecha_envio ASC LIMIT 12`,
+      ),
+    ]);
+
+    const leads = number(leadStats.leads);
+    const kpis = [
+      makeRatioKpi('CTR', number(publication.clicks), number(publication.impressions)),
+      makeRatioKpi('TIL', number(landing.interactions), number(landing.visits)),
+      makeRatioKpi('TCL', number(landing.completed_forms), number(landing.form_visits)),
+      makeRatioKpi('LPO', number(leadStats.target_leads), leads),
+      makeKpi('TPR', chat.avg_response_seconds === null ? null : number(chat.avg_response_seconds), number(chat.response_count), null),
+      makeRatioKpi('TSU', number(chat.positive_ratings), number(chat.ratings)),
+      makeRatioKpi('TCP', number(payers.payers), leads),
+      makeRatioKpi('TAP', number(proposalStats.accepted), number(proposalStats.sent)),
+      makeKpi('TPC', conversion.avg_days === null ? null : number(conversion.avg_days), number(conversion.converted), null),
+    ];
+
+    return {
+      range,
+      assumptions: {
+        payer: 'Lead con al menos un pago confirmado en pago.estado = confirmado.',
+        satisfaction: positiveSatisfactionDefinition,
+      },
+      funnel: {
+        buyers: number(landing.visits),
+        leads,
+        payers: number(payers.payers),
+      },
+      kpis,
+      charts: {
+        ctrByPlatform: (platformRows as Row[]).map((row) => ({
+          label: row.nombre,
+          clicks: number(row.clicks),
+          impressions: number(row.impressions),
+          value: makeRatioKpi('CTR', number(row.clicks), number(row.impressions)).value,
+        })),
+        leadsByDay: map(leadDayRows),
+        leadsByUniversity: map(universityRows),
+        leadsByCycle: map(cycleRows),
+        leadsByStage: map(stageRows),
+        proposalsByState: map(proposalStateRows),
+      },
+      pendingFollowUps: map(followUpRows),
+    };
   }
   async resumen() {
     const [leads, estados, monedas, proximos, recientes] = await Promise.all([
