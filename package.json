@@ -9,7 +9,10 @@
   "scripts": {
     "admin:create": "pnpm build && node scripts/create-admin.mjs",
     "test:admin": "pnpm build && node scripts/test-admin.mjs",
+    "test:contracts": "pnpm build && node scripts/test-contracts.mjs",
     "db:inspect": "node scripts/inspect-admin-db.mjs",
+    "demo:seed": "pnpm build && node scripts/seed-demo.mjs",
+    "test:demo": "pnpm build && node scripts/test-demo.mjs",
     "build": "nest build",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

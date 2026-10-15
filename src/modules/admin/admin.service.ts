@@ -21,6 +21,7 @@ import {
   ModalidadServicio,
 } from '../../common/enums/database.enums.js';
 import { makeKpi, makeRatioKpi, positiveSatisfactionDefinition } from './impulse-kpi.js';
+import { ContractListDto } from './contracts.dto.js';
 
 type Row = Record<string, any>;
 const camel = (row: Row): Row =>
@@ -54,6 +55,7 @@ const cuotaSql = `SELECT c.id_cuota,c.id_cronograma,c.nro_cuota,c.monto, c.fecha
   JOIN contrato ct ON ct.id_contrato=cp.id_contrato JOIN lead l ON l.id_lead=ct.id_lead
   LEFT JOIN (SELECT id_cuota,sum(monto) AS abonado FROM pago WHERE estado='confirmado' GROUP BY id_cuota) a USING(id_cuota)`;
 const contratoSql = `SELECT c.*, l.nombres, l.apellidos, l.correo, p.moneda,p.monto_total, cp.id_cronograma,
+  EXISTS(SELECT 1 FROM pago WHERE id_contrato=c.id_contrato) AS tiene_pagos,
   (SELECT COALESCE(sum(monto),0)::numeric(10,2)::text FROM pago WHERE id_contrato=c.id_contrato AND estado='confirmado') AS total_pagado,
   (SELECT COALESCE(sum(monto),0)::numeric(10,2)::text FROM pago WHERE id_contrato=c.id_contrato AND estado='confirmado' AND id_cuota IS NULL) AS cobros_previos,
   (p.monto_total-(SELECT COALESCE(sum(monto),0) FROM pago WHERE id_contrato=c.id_contrato AND estado='confirmado'))::numeric(10,2)::text AS saldo,
@@ -228,7 +230,7 @@ export class AdminService {
       return camel(row);
     });
   }
-  contratos(dto: ListDto) {
+  contratos(dto: ContractListDto) {
     const f = new Filters();
     if (dto.q)
       f.add(
@@ -236,6 +238,9 @@ export class AdminService {
         /^\d+$/.test(dto.q) ? dto.q : `%${dto.q}%`,
       );
     if (dto.moneda) f.add('moneda=?', dto.moneda);
+    if (dto.desde) f.add("(fecha_firma AT TIME ZONE 'America/Lima')::date>=?::date", dto.desde);
+    if (dto.hasta) f.add("(fecha_firma AT TIME ZONE 'America/Lima')::date<=?::date", dto.hasta);
+    if (dto.planificacion) f.add('(id_cronograma IS NOT NULL)=?::boolean', dto.planificacion === 'con');
     return this.paged(contratoSql, f, dto, 'id_contrato');
   }
   async contrato(id: number, m: EntityManager = this.db.manager, lock = false) {

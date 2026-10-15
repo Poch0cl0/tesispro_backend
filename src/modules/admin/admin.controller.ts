@@ -23,6 +23,7 @@ import {
   ResolverPagoDto,
 } from './admin.dto.js';
 import type { AdminRequest } from './auth.js';
+import { ContractListDto } from './contracts.dto.js';
 
 function leadId(id: string) {
   if (!/^[1-9]\d{0,18}$/.test(id) || BigInt(id) > 9223372036854775807n)
@@ -67,7 +68,7 @@ export class AdminController {
   ) {
     return this.service.saveLead(dto, req.admin.idUsuario, leadId(id));
   }
-  @Get('contratos') contratos(@Query() dto: ListDto) {
+  @Get('contratos') contratos(@Query() dto: ContractListDto) {
     return this.service.contratos(dto);
   }
   @Get('contratos/:id/cronograma') cronograma(

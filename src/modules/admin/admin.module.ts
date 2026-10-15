@@ -4,6 +4,8 @@ import { QueryFailedError } from 'typeorm';
 import { AuthController, AuthService, AdminGuard } from './auth.js';
 import { AdminController } from './admin.controller.js';
 import { AdminService } from './admin.service.js';
+import { ContractsController } from './contracts.controller.js';
+import { ContractsService } from './contracts.service.js';
 
 @Catch(QueryFailedError)
 class DatabaseErrorFilter implements ExceptionFilter {
@@ -35,10 +37,11 @@ class DatabaseErrorFilter implements ExceptionFilter {
   }
 }
 @Module({
-  controllers: [AuthController, AdminController],
+  controllers: [AuthController, AdminController, ContractsController],
   providers: [
     AuthService,
     AdminService,
+    ContractsService,
     { provide: APP_GUARD, useClass: AdminGuard },
     { provide: APP_FILTER, useClass: DatabaseErrorFilter },
   ],
